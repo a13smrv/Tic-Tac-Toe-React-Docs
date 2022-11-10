@@ -51,10 +51,11 @@ class Game extends React.Component {
     super(props);
 
     this.state = {
-      history: [
-        { squares: Array(9).fill(null) },
-      ],
-      xIsNext: true,
+      history: [{
+        squares: Array(9).fill(null),
+        xIsNext: true,
+      }],
+      stepNumber: 0,
     };
   }
 
@@ -62,23 +63,45 @@ class Game extends React.Component {
     const history = this.state.history;
     const current = history[history.length - 1];
     const squares = current.squares.slice();
+    const stepNumber = this.state.stepNumber;
 
     if (calculateWinner(squares) || squares[i]) return;
 
-    squares[i] = this.state.xIsNext ? "X" : "O";
+    squares[i] = current.xIsNext ? "X" : "O";
     this.setState({
-      history: history.concat([{ squares: squares }]),
-      xIsNext: !this.state.xIsNext,
+      history: history.concat([{
+        squares: squares,
+        xIsNext: !current.xIsNext,
+      }]),
+      stepNumber: stepNumber + 1,
+    });
+  }
+
+  jumpTo(step) {
+    this.setState({
+      stepNumber: step,
     });
   }
 
   render() {
     const history = this.state.history;
-    const current = history[history.length - 1];
+    const stepNumber = this.state.stepNumber;
+    const current = history[stepNumber];
     const winner = calculateWinner(current.squares);
     const status = winner ?
       `Winner: ${winner}`:
-      `Next player: ${this.state.xIsNext ? "X" : "O"}`;
+      `Next player: ${current.xIsNext ? "X" : "O"}`;
+    const moves = history.map((step, move) => {
+      const desc = move ?
+        `Go to move №${move}` :
+        "Go to game start"
+
+      return(
+        <li key={move}>
+          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+        </li>
+      )
+    });
 
     return (
       <div className="game">
@@ -90,7 +113,7 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{ status }</div>
-          <ol>{/* TODO */}</ol>
+          <ol>{ moves }</ol>
         </div>
       </div>
     );
